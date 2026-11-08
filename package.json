@@ -1,0 +1,23 @@
+{
+  "name": "ray-game-buttle-2",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview --host --port 4173",
+    "assets": "python3 scripts/process_assets.py",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:all": "npm run test && npm run build && npm run test:e2e"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

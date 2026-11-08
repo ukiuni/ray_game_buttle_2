@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d1f" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RAY BATTLE 2" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="3D対戦格闘ゲーム RAY BATTLE 2 — CPUと1対1で戦い、負けるまで勝ち抜け！" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <title>RAY BATTLE 2</title>
+  </head>
+  <body>
+    <canvas id="game" aria-label="ゲーム画面"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="side p1">
+          <img class="portrait" id="p1-portrait" alt="" />
+          <div class="bars">
+            <div class="name" id="p1-name">KAEN</div>
+            <div class="hpbar"><div class="trail" id="p1-trail"></div><div class="hp" id="p1-hp"></div></div>
+            <div class="wins" id="p1-wins"></div>
+            <div class="gauge"><div class="fill" id="p1-gauge"></div><span class="gauge-label" id="p1-gauge-label">SA</span></div>
+          </div>
+        </div>
+        <div class="center">
+          <div class="timer" id="timer">99</div>
+          <div class="stage-label" id="stage-label">STAGE 1</div>
+          <button class="icon-btn" id="pause-btn" aria-label="一時停止">II</button>
+        </div>
+        <div class="side p2">
+          <div class="bars">
+            <div class="name" id="p2-name">RAIGA</div>
+            <div class="hpbar"><div class="trail" id="p2-trail"></div><div class="hp" id="p2-hp"></div></div>
+            <div class="wins" id="p2-wins"></div>
+            <div class="gauge"><div class="fill" id="p2-gauge"></div><span class="gauge-label">SA</span></div>
+          </div>
+          <img class="portrait" id="p2-portrait" alt="" />
+        </div>
+      </div>
+      <div class="combo left" id="p1-combo"></div>
+      <div class="combo right" id="p2-combo"></div>
+      <div class="announce" id="announce"></div>
+      <div class="special-name" id="special-name"></div>
+      <div class="streak-badge" id="streak-badge"></div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="controls" class="hidden">
+      <div id="stick-zone">
+        <div id="stick-base"><div id="stick-knob"></div></div>
+      </div>
+      <div id="button-zone">
+        <div class="btn" data-btn="LP" id="btn-LP"><span>弱P</span></div>
+        <div class="btn" data-btn="HP" id="btn-HP"><span>強P</span></div>
+        <div class="btn" data-btn="LK" id="btn-LK"><span>弱K</span></div>
+        <div class="btn" data-btn="HK" id="btn-HK"><span>強K</span></div>
+      </div>
+    </div>
+
+    <!-- Screens -->
+    <section id="screen-loading" class="screen active">
+      <div class="logo">RAY BATTLE <em>2</em></div>
+      <div class="progress"><div id="load-bar"></div></div>
+      <p id="load-text">LOADING...</p>
+    </section>
+
+    <section id="screen-title" class="screen">
+      <div class="title-bg"></div>
+      <div class="title-content">
+        <img class="title-icon" src="./icons/icon-192.png" alt="" />
+        <div class="logo big">RAY BATTLE <em>2</em></div>
+        <div class="subtitle">炎・雷・氷 ― 3人の拳士が激突する3D対戦格闘</div>
+        <button class="primary pulse" id="start-btn">TAP TO START</button>
+        <div class="title-info">
+          <span id="best-record">BEST 0連勝</span>
+          <button class="small" id="howto-btn">あそびかた</button>
+          <button class="small" id="sound-btn">SOUND: ON</button>
+        </div>
+        <div class="version" id="version"></div>
+      </div>
+    </section>
+
+    <section id="screen-select" class="screen">
+      <h2>CHARACTER SELECT</h2>
+      <div class="select-body">
+        <div class="char-info" id="char-info"></div>
+        <div class="cards" id="cards"></div>
+      </div>
+      <div class="select-actions">
+        <button class="small" id="select-back">もどる</button>
+        <button class="primary" id="select-ok">このキャラで戦う！</button>
+      </div>
+    </section>
+
+    <section id="screen-vs" class="screen">
+      <div class="vs-wrap">
+        <div class="vs-side left"><img id="vs-p1" alt="" /><div class="vs-name" id="vs-p1-name"></div></div>
+        <div class="vs-mid"><div class="vs-stage" id="vs-stage"></div><div class="vs-text">VS</div><div class="vs-stage-name" id="vs-stage-name"></div></div>
+        <div class="vs-side right"><img id="vs-p2" alt="" /><div class="vs-name" id="vs-p2-name"></div></div>
+      </div>
+    </section>
+
+    <section id="screen-result" class="screen">
+      <div class="result-box">
+        <div class="result-title win">YOU WIN!</div>
+        <div class="result-streak" id="result-streak"></div>
+        <div class="result-msg" id="result-msg"></div>
+        <div class="auto-next">
+          <div class="auto-ring"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" id="auto-circle"></circle></svg><span id="auto-count">5</span></div>
+          <div>AUTO NEXT ― 負けるまで自動で次の試合へ</div>
+        </div>
+        <div class="result-actions">
+          <button class="primary" id="next-btn">すぐに次へ ▶</button>
+          <button class="small" id="quit-btn">やめる</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-gameover" class="screen">
+      <div class="result-box">
+        <div class="result-title lose">GAME OVER</div>
+        <div class="result-streak" id="gameover-streak"></div>
+        <div class="result-msg" id="gameover-best"></div>
+        <div class="result-actions">
+          <button class="primary" id="retry-btn">もう一度挑戦</button>
+          <button class="small" id="reselect-btn">キャラ選択</button>
+          <button class="small" id="title-btn">タイトル</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-pause" class="screen overlay">
+      <div class="result-box">
+        <div class="result-title">PAUSE</div>
+        <div class="result-actions">
+          <button class="primary" id="resume-btn">再開</button>
+          <button class="small" id="pause-title-btn">タイトルへ</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-howto" class="screen overlay">
+      <div class="result-box howto">
+        <div class="result-title">あそびかた</div>
+        <ul>
+          <li><b>左スティック</b>：移動 / ↑ジャンプ / ↓しゃがみ / 相手と逆方向でガード</li>
+          <li><b>右ボタン</b>：弱P・強P・弱K・強K</li>
+          <li><b>↓↘→ + P</b>：飛び道具　<b>→↓↘ + P</b>：対空技　<b>↓↙← + K</b>：突進技</li>
+          <li><b>強P + 強K 同時押し</b>（ゲージMAX時）：超必殺技</li>
+          <li>勝つと自動で次のステージへ。負けるまで連勝記録に挑戦！</li>
+        </ul>
+        <div class="result-actions"><button class="primary" id="howto-close">OK</button></div>
+      </div>
+    </section>
+
+    <div id="rotate">
+      <div class="rotate-icon">📱↻</div>
+      <p>端末を横向きにしてプレイしてください</p>
+    </div>
+    <div id="flash"></div>
+    <div id="toast"></div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
