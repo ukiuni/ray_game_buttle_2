@@ -126,11 +126,14 @@ class Particles {
 export class GameRenderer {
   constructor(canvas) {
     this.canvas = canvas;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: dpr < 2, powerPreference: 'high-performance', alpha: false });
+    // ?test=1 : low graphics mode used by automated tests on software-rendered CI
+    const low = /[?&]test=1/.test(window.location.search);
+    this.lowGfx = low;
+    const dpr = low ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !low && dpr < 2, powerPreference: 'high-performance', alpha: false });
     this.renderer.setPixelRatio(dpr);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !low;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(32, 16 / 9, 0.1, 100);

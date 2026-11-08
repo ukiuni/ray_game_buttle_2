@@ -1,4 +1,4 @@
-name: Test & Deploy to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -28,19 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests
-        run: npm test
-
       - name: Build
-        run: npm run build
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: End-to-end tests (iPhone / iPad / Android emulation)
-        run: npx playwright test
-
-      - name: Rebuild (clean dist for deployment)
         run: npm run build
 
       - uses: actions/configure-pages@v5

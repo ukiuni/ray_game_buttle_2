@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoTitle, startFight, touch, center } from './helpers.js';
+import { gotoTitle, startFight, touch, center, T } from './helpers.js';
 
 test('boots to the title screen with WebGL rendering and no errors', async ({ page }) => {
   const errors = [];
@@ -60,17 +60,18 @@ test('joystick on the left moves the fighter, 4 buttons on the right attack', as
   const x0 = await page.evaluate(() => window.__rgb2.match.f[0].x);
   await touch(page, '#stick-zone', 'pointerdown', stick.x, stick.y);
   await touch(page, '#stick-zone', 'pointermove', stick.x + 60, stick.y);
-  await page.waitForTimeout(500);
+  await page.waitForFunction((x0) => window.__rgb2.match.f[0].x > x0 + 0.1, x0, { timeout: T });
   await touch(page, '#stick-zone', 'pointerup', stick.x + 60, stick.y);
   const x1 = await page.evaluate(() => window.__rgb2.match.f[0].x);
   expect(x1).toBeGreaterThan(x0 + 0.1);
 
   for (const b of ['LP', 'HP', 'LK', 'HK']) {
-    await page.waitForFunction(() => window.__rgb2.match.f[0].actionable || window.__rgb2.match.phase !== 'fight');
+    await page.waitForFunction(() => window.__rgb2.match.f[0].actionable, null, { timeout: T });
+    await page.evaluate(() => (window.__rgb2.match.f[0].lastMove = null));
     const c = await center(page, `#btn-${b}`);
     // hold the stick neutral and press the button with a second finger
     await touch(page, '#button-zone', 'pointerdown', c.x, c.y, 2);
-    const started = await page.waitForFunction((b) => window.__rgb2.match.f[0].moveName === b, b, { timeout: 3000 }).then(() => true, () => false);
+    const started = await page.waitForFunction((b) => window.__rgb2.match.f[0].lastMove === b, b, { timeout: T }).then(() => true, () => false);
     await touch(page, '#button-zone', 'pointerup', c.x, c.y, 2);
     expect(started, `button ${b}`).toBe(true);
   }
@@ -82,9 +83,9 @@ test('multi-touch: move and attack at the same time', async ({ page }) => {
   const hp = await center(page, '#btn-HP');
   await touch(page, '#stick-zone', 'pointerdown', stick.x, stick.y, 1);
   await touch(page, '#stick-zone', 'pointermove', stick.x, stick.y + 60, 1); // crouch
-  await page.waitForTimeout(100);
+  await page.waitForFunction(() => window.__rgb2.match.f[0].state === 'crouch', null, { timeout: T });
   await touch(page, '#button-zone', 'pointerdown', hp.x, hp.y, 2);
-  const crouchAttack = await page.waitForFunction(() => window.__rgb2.match.f[0].moveName === 'cHP', null, { timeout: 3000 }).then(() => true, () => false);
+  const crouchAttack = await page.waitForFunction(() => window.__rgb2.match.f[0].lastMove === 'cHP', null, { timeout: T }).then(() => true, () => false);
   await touch(page, '#button-zone', 'pointerup', hp.x, hp.y, 2);
   await touch(page, '#stick-zone', 'pointerup', stick.x, stick.y + 60, 1);
   expect(crouchAttack).toBe(true);
@@ -96,23 +97,23 @@ test('winning automatically starts the next stage until the player loses', async
   expect(stage1).toEqual([1, 'kaen']);
   // win two rounds
   for (let r = 0; r < 2; r++) {
-    await page.waitForFunction(() => window.__rgb2.match.phase === 'fight', null, { timeout: 20_000 });
+    await page.waitForFunction(() => window.__rgb2.match.phase === 'fight', null, { timeout: T });
     await page.evaluate(() => window.__rgb2.koSide(1));
   }
-  await page.waitForFunction(() => window.__rgb2.screen === 'result', null, { timeout: 20_000 });
+  await page.waitForFunction(() => window.__rgb2.screen === 'result', null, { timeout: T });
   await expect(page.locator('#result-streak')).toContainText('1連勝');
   await expect(page.locator('#auto-count')).toBeVisible();
   // no tap: it must continue on its own to stage 2
-  await page.waitForFunction(() => window.__rgb2.screen === 'vs' || window.__rgb2.screen === 'fight', null, { timeout: 10_000 });
+  await page.waitForFunction(() => window.__rgb2.screen === 'vs' || window.__rgb2.screen === 'fight', null, { timeout: T });
   const stage2 = await page.evaluate(() => [window.__rgb2.run.stage, window.__rgb2.run.opponentId]);
   expect(stage2).toEqual([2, 'raiga']);
-  await page.waitForFunction(() => window.__rgb2.screen === 'fight', null, { timeout: 10_000 });
+  await page.waitForFunction(() => window.__rgb2.screen === 'fight', null, { timeout: T });
   // now lose: game over, no auto continue
   for (let r = 0; r < 2; r++) {
-    await page.waitForFunction(() => window.__rgb2.match.phase === 'fight', null, { timeout: 20_000 });
+    await page.waitForFunction(() => window.__rgb2.match.phase === 'fight', null, { timeout: T });
     await page.evaluate(() => window.__rgb2.koSide(0));
   }
-  await page.waitForFunction(() => window.__rgb2.screen === 'gameover', null, { timeout: 20_000 });
+  await page.waitForFunction(() => window.__rgb2.screen === 'gameover', null, { timeout: T });
   await expect(page.locator('#gameover-streak')).toContainText('1連勝');
   await page.waitForTimeout(6500);
   expect(await page.evaluate(() => window.__rgb2.screen)).toBe('gameover');

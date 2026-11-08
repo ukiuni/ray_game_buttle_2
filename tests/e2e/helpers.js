@@ -1,6 +1,9 @@
+// CI runners render WebGL in software, so the game runs slower than real time there.
+export const T = process.env.CI ? 120_000 : 20_000;
+
 export async function gotoTitle(page) {
-  await page.goto('./');
-  await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title', null, { timeout: 45_000 });
+  await page.goto('./?test=1');
+  await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title', null, { timeout: T * 2 });
 }
 
 export async function startFight(page, charId = 'kaen') {
@@ -9,8 +12,8 @@ export async function startFight(page, charId = 'kaen') {
   await page.waitForFunction(() => window.__rgb2.screen === 'select');
   await page.locator(`.card[data-id="${charId}"]`).tap({ force: true });
   await page.locator('#select-ok').tap({ force: true });
-  await page.waitForFunction(() => window.__rgb2.screen === 'fight', null, { timeout: 15_000 });
-  await page.waitForFunction(() => window.__rgb2.match.phase === 'fight', null, { timeout: 15_000 });
+  await page.waitForFunction(() => window.__rgb2.screen === 'fight', null, { timeout: T });
+  await page.waitForFunction(() => window.__rgb2.match.phase === 'fight', null, { timeout: T });
 }
 
 /** Dispatch a touch-like pointer sequence at screen coordinates. */

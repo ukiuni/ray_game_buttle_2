@@ -121,6 +121,8 @@ export class Fighter {
     if (name === 'FIREBALL' && this.projectileActive) return false;
     this.move = name === 'SUPER' ? { ...m, multiHit: 5, hitInterval: 4 } : m;
     this.moveName = name;
+    this.lastMove = name; // sticky record of the most recent move (used by tests / UI)
+    this.moveCount = (this.moveCount || 0) + 1;
     this.moveFrame = 0;
     this.hitConnected = false;
     this.hitCount = 0;

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { gotoTitle, startFight } from './helpers.js';
+import { gotoTitle, startFight, T } from './helpers.js';
 
 const SW = new URL('../../dist/sw.js', import.meta.url).pathname;
 
@@ -15,14 +15,14 @@ test.describe('PWA', () => {
     await page.waitForFunction(async () => {
       const r = await navigator.serviceWorker.getRegistration();
       return !!(r && r.active) && !!navigator.serviceWorker.controller;
-    }, null, { timeout: 30_000 }).catch(async () => {
+    }, null, { timeout: T }).catch(async () => {
       // first load is not controlled yet: reload once
       await page.reload();
     });
-    await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30_000 });
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: T });
     await context.setOffline(true);
     await page.reload();
-    await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title', null, { timeout: 30_000 });
+    await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title', null, { timeout: T });
     await context.setOffline(false);
   });
 
@@ -30,25 +30,25 @@ test.describe('PWA', () => {
     const original = readFileSync(SW, 'utf8');
     try {
       await gotoTitle(page);
-      await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30_000 }).catch(() => page.reload());
-      await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30_000 });
+      await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: T }).catch(() => page.reload());
+      await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: T });
       await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title');
       await startFight(page, 'kaen');
       await page.evaluate(() => (window.__marker = 'same-page'));
       // deploy a "new version"
       writeFileSync(SW, original.replace(/const VERSION = "([0-9a-f]+)"/, 'const VERSION = "$1-next"'));
       await page.evaluate(() => window.__rgb2.updater.check());
-      await page.waitForFunction(() => window.__rgb2.updater.hasUpdate, null, { timeout: 30_000 });
+      await page.waitForFunction(() => window.__rgb2.updater.hasUpdate, null, { timeout: T });
       await page.waitForTimeout(1500);
       // still the same page, still fighting
       expect(await page.evaluate(() => [window.__marker, window.__rgb2.screen])).toEqual(['same-page', 'fight']);
       // finish the run (lose) -> game over is a safe point -> update + reload
       for (let r = 0; r < 2; r++) {
-        await page.waitForFunction(() => window.__rgb2.match && window.__rgb2.match.phase === 'fight', null, { timeout: 20_000 });
+        await page.waitForFunction(() => window.__rgb2.match && window.__rgb2.match.phase === 'fight', null, { timeout: T });
         await page.evaluate(() => window.__rgb2.koSide(0));
       }
-      await page.waitForFunction(() => window.__marker !== 'same-page', null, { timeout: 30_000 });
-      await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title', null, { timeout: 30_000 });
+      await page.waitForFunction(() => window.__marker !== 'same-page', null, { timeout: T });
+      await page.waitForFunction(() => window.__rgb2 && window.__rgb2.screen === 'title', null, { timeout: T });
     } finally {
       writeFileSync(SW, original);
     }

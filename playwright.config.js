@@ -4,7 +4,7 @@ const chromiumArgs = ['--use-gl=angle', '--enable-unsafe-swiftshader', '--ignore
 
 export default defineConfig({
   testDir: 'tests/e2e',
-  timeout: 90_000,
+  timeout: process.env.CI ? 600_000 : 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
   workers: 1,

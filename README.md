@@ -32,7 +32,7 @@ npm run assets     # art_src/ の画像を public/ 用に変換（Python + Pillo
 ```
 
 ## 公開
-`main` に push すると GitHub Actions（`.github/workflows/deploy.yml`）がテスト・ビルドを実行し、GitHub Pages に公開します。
+`main` に push すると GitHub Actions（`.github/workflows/deploy.yml`）がビルドして GitHub Pages に公開します。テストはローカルで `npm test` / `npm run test:e2e` を実行してください。
 初回だけ、リポジトリの Settings → Pages → Source を **GitHub Actions** にしてください。
 
 ## アップデート
